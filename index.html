@@ -1,0 +1,93 @@
+<html>
+  <head>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <td>Average number of customers arrivals onver an hour</td>
+        <td>
+          <input type="text" name="lamda" />
+        </td>
+      </tr>
+      <tr>
+        <td>Employee productivity</td>
+        <td>
+          <table>
+            <tr>
+              <td>Employee name</td>
+              <td>Unit</td>
+              <td>Working hours</td>
+            </tr>
+            <tr>
+              <td>Employee1</td>
+              <td><input type="text" name="employee1_unit" class="unit"/></td>
+              <td><input type="text" name="employee1_workinghours" class="workinghours"/></td>
+            </tr>
+            <tr>
+                <td>Employee2</td>
+                <td><input type="text" name="employee2_unit" class="unit"/></td>
+                <td><input type="text" name="employee2_workinghours" class="workinghours"/></td>
+            </tr>
+            <tr>
+                <td>Employee3</td>
+                <td><input type="text" name="employee3_unit" class="unit"/></td>
+              <td><input type="text" name="employee3_workinghours" class="workinghours"/></td>
+            </tr>
+            <tr>
+                <td>Employee4</td>
+                <td><input type="text" name="employee4_unit" class="unit"/></td>
+              <td><input type="text" name="employee4_workinghours" class="workinghours"/></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td></td>
+      </tr>
+      
+    </table>
+
+    <table>
+      <tr>
+        <td>Average number of customer inqueue</td>
+        <td id="average_numer_in_queue"></td>
+      </tr>
+      <tr>
+          <td>Average waiting and service time</td>
+          <td id="average_waiting_and_service_time"></td>
+        </tr>
+       
+    </table>
+  </body>
+  <script type="text/javascript">
+  let e = 2.71828
+
+  function factorial(num)
+{
+    var rval=1;
+    for (var i = 2; i <= num; i++)
+        rval = rval * i;
+    return rval;
+}
+  function calculatePoissonDistrution(x, lamda) {
+    let fractorialOfX = factorial(x);
+    let quotient = Math.pow(lamda, x) * Math.pow(e, (0 - lamda));
+
+    return quotient / fractorialOfX  
+  }
+
+  function calculateExponentialProbabilityDistribution(t, u) {
+    return 1 - Math.pow(e, (0 - u * t))
+  }
+
+  function calculateAverageNumberInQueue(lamda, u) {
+    return Math.pow(lamda, 2) / (u * (u - lamda))
+  }
+
+  function calculateAverageWaitingAndServiceTime(lamda, u) {
+    return lamda / (u * (u - lamda)) + 1 / u
+  }
+
+  </script>
+</html>
