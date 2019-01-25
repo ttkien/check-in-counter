@@ -2,6 +2,85 @@
 
 <head>
     <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+
+        // Load the Visualization API and the corechart package.
+        google.charts.load('current', { 'packages': ['corechart'] });
+
+        // Callback that creates and populates a data table,
+        // instantiates the pie chart, passes in the data and
+        // draws it.
+        function drawChart(lamda) {
+            let array = [['Customer Arrivals', 'Probability', { role: 'style' }]];
+
+            var dataAsHours = [['Customer Arrivals', 'Probability', { role: 'style' }]];
+            if (lamda == null || lamda == '') {
+                var chart = new google.visualization.BarChart(document.getElementById('chart_poisson_distribution'));
+                chart.draw(google.visualization.arrayToDataTable(array), options);
+                return;
+            }
+
+            let total = parseInt(lamda) + 5
+            lamda = parseInt(lamda);
+            for (i = lamda - 5; i < total; i++) {
+                if (i >= 0) {
+                    let color = i == lamda ? "black" : "blue";
+                    let value = calculatePoissonDistrution(i, lamda);
+                    array.push(["" + i, value, color]);
+                    dataAsHours.push(["" + i, value * self.openingInMonth(), color]);
+                }
+            }
+            console.log(array);
+            // Create the data table.
+            var data = google.visualization.arrayToDataTable(array);
+
+            // Set chart options
+            var options = {
+                'title': 'the probability of customer arrivals in a hour',
+                'width': 400,
+                'height': 300,
+                legend: {
+                    position: "bottom"
+                },
+                vAxis: {
+                    format: '#'
+                },
+                hAxis: {
+                    format: '#%'
+                },
+                animation: {
+                    duration: 500,
+                    easing: 'out',
+                },
+            }
+                ;
+
+            // Instantiate and draw our chart, passing in some options.
+            var chart = new google.visualization.BarChart(document.getElementById('chart_poisson_distribution'));
+            chart.draw(data, options);
+
+            var optionsAsHours = {
+                'title': 'the probability of customer arrivals in a hour in working hours (assume 160hours per month)',
+                'width': 400,
+                'height': 300,
+                legend: {
+                    position: "bottom"
+                },
+                vAxis: {
+                    format: '#'
+                },
+                animation: {
+                    duration: 500,
+                    easing: 'out',
+                },
+            }
+
+            var chartAsHours = new google.visualization.BarChart(document.getElementById('chart_poisson_distribution_as_hours'));
+            chartAsHours.draw(google.visualization.arrayToDataTable(dataAsHours), optionsAsHours);
+        }
+    </script>
+
 </head>
 
 <body>
@@ -9,9 +88,21 @@
         <div class="column">
             <table>
                 <tr>
-                    <td>Average number of customers arrivals onver an hour</td>
+                    <td>customers arrivals in month</td>
                     <td>
-                        <input type="text" name="lamda" />
+                        <input type="text" name="customer_in_month" />
+                    </td>
+                </tr>
+                <tr>
+                        <td>Opening hours over month</td>
+                        <td>
+                            <input type="text" name="opening_in_month" />
+                        </td>
+                    </tr>
+                <tr>
+                    <td>Average number of customers arrivals over an hour</td>
+                    <td>
+                        <input type="text" name="lamda" readonly />
                     </td>
                 </tr>
                 <tr>
@@ -20,7 +111,7 @@
                         <table>
                             <tr>
                                 <td>Employee name</td>
-                                <td>Unit</td>
+                                <td>Unit (expectation)</td>
                                 <td>Working hours</td>
                                 <td>Wage ($/hour)</td>
                             </tr>
@@ -70,18 +161,23 @@
 
         </div>
         <div class="column">
-
             <table>
-                <tr>
-                    <td>Average number of customer inqueue</td>
-                    <td id="average_numer_in_queue"></td>
-                </tr>
-                <tr>
-                    <td>Average waiting and service time</td>
-                    <td id="average_waiting_and_service_time"></td>
-                </tr>
+                <table>
 
-            </table>
+                    <tr>
+                        <td>Average number of customer inqueue</td>
+                        <td id="average_numer_in_queue"></td>
+                    </tr>
+                    <tr>
+                        <td>Average waiting and service time</td>
+                        <td id="average_waiting_and_service_time"></td>
+                    </tr>
+
+                </table>
+
+                <div id="chart_poisson_distribution"></div>
+                <div id="chart_poisson_distribution_as_hours"></div>
+
         </div>
     </div>
 </body>
@@ -110,12 +206,12 @@
     }
 
     function calculateAverageWaitingAndServiceTime(lamda, u) {
-        let a =  (u * (u - lamda))
+        let a = (u * (u - lamda))
         console.log(a);
-        let b = 1/u
+        let b = 1 / u
         console.log(b);
 
-        return (lamda / a)  + b
+        return (lamda / a) + b
     }
 
     function onCalculate() {
@@ -131,9 +227,10 @@
 
             let isInvalue = unit == '' || workingHours == '' || wage == ''
             if (isInvalue == false) {
-                totalUnit += unit;
-                totalWorkingHours += workingHours;
-                totalSalary = workingHours * wage;
+                totalUnit += parseFloat(unit);
+                totalWorkingHours += parseFloat(workingHours);
+                totalSalary += parseFloat(workingHours * wage);
+                console.log(totalSalary);
             }
         }
 
@@ -141,21 +238,32 @@
         $("*[name='total_workinghours']").val(totalWorkingHours);
         $("*[name='total_wage']").val(totalSalary);
 
-        let u = totalUnit / totalWorkingHours;
-        let lamda = $("*[name='lamda']").val()
+
+        let customersInMonth =  $("*[name='customer_in_month']").val();
+        let openingService =  self.openingInMonth();
+
+        let lamda = customersInMonth / openingService
+        $("*[name='lamda']").val(lamda);
+
+        let u = totalUnit / openingService;
 
         let average_numer_in_queue = calculateAverageNumberInQueue(lamda, u);
-        $("*[id='average_numer_in_queue']").html(average_numer_in_queue);
+        $("*[id='average_numer_in_queue']").html(average_numer_in_queue > 0 ? average_numer_in_queue.toFixed(2) : "NaN");
 
         let average_waiting_and_service_time = calculateAverageWaitingAndServiceTime(lamda, u);
-        $("*[id='average_waiting_and_service_time']").html(average_waiting_and_service_time);
+        $("*[id='average_waiting_and_service_time']").html(average_waiting_and_service_time > 0 ? average_waiting_and_service_time.toFixed(2): "NaN");
+
+        drawChart(lamda);
     }
 
+    function openingInMonth() {
+        return $("*[name='opening_in_month']").val();
+    }
 </script>
 <style>
     .column {
         float: left;
-        width: 50%;
+        width: 100%;
     }
 
     /* Clear floats after the columns */
